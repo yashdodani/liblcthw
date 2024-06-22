@@ -32,22 +32,26 @@ $(TARGET): build $(OBJECTS)
 	ar rcs $@ $(OBJECTS)
 	ranlib $@
 $(SO_TARGET): $(TARGET) $(OBJECTS)
-	$(CC) -shared -o $@ $(OBJECTS)
+	$(CC) -shared -o $@ $(OBJECTS) -Wl,-rpath=build
 
 build:
 	@mkdir -p build
 	@mkdir -p bin
+
+%.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
 
 # the unit tests
 # make will ignore this
 .PHONY: tests
 
 # test programs linked with the TARGET library.
-tests: CFLAGS += $(TARGET)
+tests: export LD_LIBRARY_PATH=build
+tests: CFLAGS += -Lbuild -llcthw
 
 # Make, use what you know about building programs and current CFLAGS settings to build each program in TESTS.
 tests: $(TESTS)
-	sh ./tests/runtests.sh
+	sh ./tests/runtests.sh 
 
 # the cleaner
 clean: 
